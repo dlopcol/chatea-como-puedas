@@ -1,49 +1,45 @@
 // Show form to choose nickname before creating a new connection
 // Then open connection and send nickname to the server
+StartChat = {
+  checkNameAndCreateConnection: function(name) {
+    // Check that name is correct and not empty
+    if (name === "") {
+      alert("You must type your nickname");
+    } else {
+      // Create the websocket connection
+      WSocket.initialize(function(){
+        // Send the name over the websocket
+        WSocket.sendMessage(name);      
+      });
 
-var ws = new WebSocket('ws://localhost:8080/');
+      $("#welcome").hide();
+      $("#messages").show();
+    }
 
-// Open connection
-ws.onopen =  function() {
-	console.log('Connection has been created');
+  }
 };
 
-//Print messages from server
-ws.onmessage = function(message) {
-	writeMessage(message);
-};
-
-// Aux function to write a message in DOM
-var writeMessage = function (message) {
-	var p = $('<p></p>').text(message.data);
-	$(document.getElementById("history")).append(p);
-};
-
-// Log errors from server
-ws.onerror = function (error) {
-  console.log('WebSocket Error ' + error);
-};
-
-// When submitting the form, send the message to the server
 $(document).ready(function() {
-	/* attach a submit handler to the form */
-	$("#msgForm").submit(function(event) {
-		/* stop form from submitting normally */
-		event.preventDefault(); 
+  $("#messages").hide();
 
-		/* get some values from elements on the page: */
-		var input = $(this).find('input[name="msg"]');
-		var msg = input.val();
+  /* Attach a submit handler to the form
+  to send message to the server */
+  $("#msgForm").submit(function(event) {
+    // Stop form from submitting normally
+    event.preventDefault(); 
 
-		/* Send the message */
-		ws.send(msg);
+    /* get some values from elements on the page: */
+    var input = $(this).find('input[name="msg"]');
+    var msg = input.val();
 
-		// I cannot call writeMessage(term);
-		var p = $('<p></p>').text(msg);
-		$(document.getElementById("history")).append(p);
+    // Send the message
+    WSocket.sendMessage(msg);
 
-		// Clear input field
-		input.val('');
-	
-	});
+    // Print message in DOM
+    WSocket.writeMessage(msg);
+
+    // Clear input field
+    input.val('');
+  
+  });
 });

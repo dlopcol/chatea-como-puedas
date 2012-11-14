@@ -4,19 +4,25 @@
     <title><%= title %></title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
     <script src='/components/jquery/jquery.js'></script>
+    <script src='/javascripts/messageHandler.js'></script>
     <script src='/javascripts/client.js'></script>
   </head>
   <body>
-	<p>Welcome to</p>
-	<h1><%= title %></h1>
-
-	<div id="history" class="hide">
-	</div>
-	<form action='/message' id="msgForm">
-	  <fieldset>
-	    <input type="text" name="msg">
-	    <button type="submit" class="btn">Send</button>
-	  </fieldset>
-	</form>
+    <div id="welcome">
+      <h1><%= title %></h1>
+      <p>Introduce your nickname</p>
+      <input type="text" id="nick">
+      <button class="btn" onclick="StartChat.checkNameAndCreateConnection($('#nick').val())">Send</button>
+    </div>
+    <div id="messages">
+      <div id="history">
+      </div>
+      <form id="msgForm">
+        <fieldset>
+          <input type="text" name="msg">
+          <button type="submit" class="btn">Send</button>
+        </fieldset>
+      </form>
+    </div>
   </body>
 </html>

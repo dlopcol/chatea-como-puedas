@@ -5,7 +5,6 @@
 
 var express = require('express')
   , routes = require('./routes')
-  , user = require('./routes/user')
   , http = require('http')
   , path = require('path');
 
@@ -28,7 +27,6 @@ app.configure('development', function(){
 });
 
 app.get('/', routes.index);
-app.get('/users', user.list);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
@@ -36,35 +34,42 @@ http.createServer(app).listen(app.get('port'), function(){
 
 // Initialize
 var connections = [];
-var connected = 0;
+var names = [];
 
 // Instantiate a new WebSocketServer
 var WebSocketServer = require('ws').Server
   , wss = new WebSocketServer({port: 8080});
 
-//When a new connection is received, store it
+// Initialize new WebSocket connection
+// Store it and define onmessage and onclose
 wss.on('connection', function(ws) {
-	var id = ++connected;
-	connections[id] = ws;
-	broadcast('Connected user:' + id, id);
+  var nameReceived = false;
+  var id = connections.length;
+  connections[id] = ws;
 
-	ws.on('message', function(message) {
-		broadcast(message, id);
-	});
+  ws.on('message', function(message) {
+    if (nameReceived) {
+      broadcast(names[id] + ': ' + message, id);
+    } else {
+      names[id] = message;
+      nameReceived = true;
+      broadcast('Connected user: ' + names[id], id);
+    }
+  });
 
-	//ws.send('ack');
-	ws.on('close', function() {
-		connections[id] = null;
-		broadcast('Disconnected user:' + id, id);
-	});
+  ws.on('close', function() {
+    connections[id] = null;
+    broadcast('Disconnected user: ' + names[id], id);
+  });
 });
 
-// Send message to the OTHER clients
-//that still active (!== null)
+// Broadcast message to the OTHER clients
+// that still active (!== null)
 function broadcast(message, id) {
-	for (var i=1; i <= connected; i++) {
-		if (i !== id && connections[i] !== null) {
-			connections[i].send(message);
-		}
-	}
+  var len = connections.length;
+  for (var i=0; i < len; i++) {
+    if (i !== id && connections[i] !== null) {
+      connections[i].send(message);
+    }
+  }
 }
